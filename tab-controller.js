@@ -1,0 +1,233 @@
+/**
+ * 尚唯云影 2.0 - 多标签页控制器
+ * 现代化Tab导航系统
+ */
+
+(function() {
+  'use strict';
+
+  // Tab配置
+  var TAB_CONFIG = [
+    { 
+      id: 'home', 
+      name: '首页', 
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>'
+    },
+    { 
+      id: 'movie', 
+      name: '电影', 
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg>'
+    },
+    { 
+      id: 'tv', 
+      name: '电视剧', 
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>'
+    },
+    { 
+      id: 'anime', 
+      name: '动画片', 
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>'
+    },
+    { 
+      id: 'doc', 
+      name: '纪录片', 
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>'
+    },
+    { 
+      id: 'fav', 
+      name: '收藏', 
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>'
+    }
+  ];
+
+  // 状态管理
+  var state = {
+    activeTab: 'home',
+    tabData: {}
+  };
+
+  /**
+   * 初始化Tab系统
+   */
+  function initTabSystem() {
+    console.log('[TabSystem] 初始化...');
+    
+    // 创建Tab栏
+    createTabBar();
+    
+    // 绑定事件
+    bindEvents();
+    
+    // 激活默认Tab
+    activateTab('home');
+    
+    console.log('[TabSystem] 初始化完成');
+  }
+
+  /**
+   * 创建Tab栏
+   */
+  function createTabBar() {
+    var tabBar = document.getElementById('main-tab-bar');
+    if (!tabBar) {
+      console.error('[TabSystem] 未找到Tab容器 #main-tab-bar');
+      return;
+    }
+    
+    var html = '';
+    TAB_CONFIG.forEach(function(tab) {
+      html += '<button class="tab-item" data-tab="' + tab.id + '">' +
+              '<span class="tab-icon">' + tab.icon + '</span>' +
+              '<span>' + tab.name + '</span>' +
+              '</button>';
+    });
+    
+    tabBar.innerHTML = html;
+  }
+
+  /**
+   * 绑定事件
+   */
+  function bindEvents() {
+    var tabBar = document.getElementById('main-tab-bar');
+    if (!tabBar) return;
+    
+    // Tab点击事件
+    tabBar.addEventListener('click', function(e) {
+      var tabItem = e.target.closest('.tab-item');
+      if (tabItem) {
+        var tabId = tabItem.getAttribute('data-tab');
+        activateTab(tabId);
+      }
+    });
+    
+    // 键盘导航（无障碍）
+    tabBar.addEventListener('keydown', function(e) {
+      var tabs = Array.from(tabBar.querySelectorAll('.tab-item'));
+      var currentIndex = tabs.indexOf(document.activeElement);
+      
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        var nextIndex = (currentIndex + 1) % tabs.length;
+        tabs[nextIndex].focus();
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        var prevIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+        tabs[prevIndex].focus();
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        if (document.activeElement.classList.contains('tab-item')) {
+          document.activeElement.click();
+        }
+      }
+    });
+  }
+
+  /**
+   * 激活指定Tab
+   */
+  function activateTab(tabId) {
+    var tabConfig = TAB_CONFIG.find(function(t) { return t.id === tabId; });
+    if (!tabConfig) {
+      console.warn('[TabSystem] 未知的Tab:', tabId);
+      return;
+    }
+    
+    // 更新Tab栏状态
+    var tabItems = document.querySelectorAll('.tab-item');
+    tabItems.forEach(function(item) {
+      if (item.getAttribute('data-tab') === tabId) {
+        item.classList.add('active');
+      } else {
+        item.classList.remove('active');
+      }
+    });
+    
+    // 更新内容区域
+    var panes = document.querySelectorAll('.tab-pane');
+    panes.forEach(function(pane) {
+      if (pane.id === 'pane-' + tabId) {
+        pane.classList.add('active');
+      } else {
+        pane.classList.remove('active');
+      }
+    });
+    
+    // 更新状态
+    state.activeTab = tabId;
+    
+    // 触发自定义事件
+    window.dispatchEvent(new CustomEvent('tab:switched', {
+      detail: { tabId: tabId, config: tabConfig }
+    }));
+    
+    // 加载Tab数据（如果需要）
+    loadTabData(tabId);
+    
+    console.log('[TabSystem] 切换到:', tabId);
+  }
+
+  /**
+   * 加载Tab数据
+   */
+  function loadTabData(tabId) {
+    // 如果已加载，直接返回
+    if (state.tabData[tabId]) {
+      return;
+    }
+    
+    // 使用DataLoader加载数据（如果存在）
+    if (typeof DataLoader !== 'undefined' && DataLoader.load) {
+      DataLoader.load(tabId, function(err) {
+        if (!err) {
+          state.tabData[tabId] = true;
+          console.log('[TabSystem] 数据已加载:', tabId);
+        }
+      });
+    }
+  }
+
+  /**
+   * 获取当前激活的Tab
+   */
+  function getActiveTab() {
+    return state.activeTab;
+  }
+
+  /**
+   * 更新Tab徽章
+   */
+  function updateTabBadge(tabId, count) {
+    var tabItem = document.querySelector('.tab-item[data-tab="' + tabId + '"]');
+    if (!tabItem) return;
+    
+    var badge = tabItem.querySelector('.tab-badge');
+    if (count > 0) {
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'tab-badge';
+        tabItem.appendChild(badge);
+      }
+      badge.textContent = count;
+    } else if (badge) {
+      badge.remove();
+    }
+  }
+
+  // 导出API
+  window.TabSystem = {
+    init: initTabSystem,
+    activate: activateTab,
+    getActive: getActiveTab,
+    updateBadge: updateTabBadge,
+    config: TAB_CONFIG
+  };
+
+  // DOM加载后初始化
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTabSystem);
+  } else {
+    initTabSystem();
+  }
+
+})();

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>上传照片 - 尚唯云册</title>
+  <link rel="stylesheet" href="engine/upload.css">
+</head>
+<body>
+
+<!-- 顶部导航 -->
+<header class="upload-header">
+  <a href="/" class="back-btn">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="15 18 9 12 15 6"></polyline>
+    </svg>
+  </a>
+  <h1>上传照片</h1>
+  <span></span>
+</header>
+
+<div class="upload-container">
+  <div class="upload-form">
+    
+    <!-- 归属选择 -->
+    <div class="form-group">
+      <label>归属 <span class="required">*</span></label>
+      <select id="upload-owner" class="form-select">
+        <option value="">请选择归属</option>
+        <option value="R">R - 老婆</option>
+        <option value="S">S - 本人</option>
+        <option value="S&R">S&R - 夫妻共同</option>
+      </select>
+    </div>
+    
+    <!-- 日期选择 -->
+    <div class="form-group">
+      <label>日期 <span class="required">*</span></label>
+      <input type="date" id="upload-date" class="form-input">
+      <small class="form-hint">精确到日，或只填年月</small>
+    </div>
+    
+    <!-- 事件类型 -->
+    <div class="form-group">
+      <label>事件类型 <span class="required">*</span></label>
+      <select id="upload-event" class="form-select">
+        <option value="">请选择事件</option>
+        <option value="生活照">生活照</option>
+        <option value="游玩">游玩</option>
+        <option value="聚会">聚会</option>
+        <option value="参加婚礼">参加婚礼</option>
+        <option value="结婚典礼">结婚典礼</option>
+        <option value="结婚照">结婚照</option>
+        <option value="工作照">工作照</option>
+        <option value="艺术照">艺术照</option>
+        <option value="集体照">集体照</option>
+        <option value="旅游结婚">旅游结婚</option>
+      </select>
+    </div>
+    
+    <!-- 人物 -->
+    <div class="form-group">
+      <label>人物 <span class="optional">(可选)</span></label>
+      <input type="text" id="upload-persons" class="form-input" placeholder="多人用 / 分隔">
+      <small class="form-hint">例如：张三/李四/王五</small>
+    </div>
+    
+    <!-- 地点 -->
+    <div class="form-group">
+      <label>地点 <span class="optional">(可选)</span></label>
+      <input type="text" id="upload-location" class="form-input" placeholder="拍摄地点">
+      <small class="form-hint">例如：沈阳北陵公园</small>
+    </div>
+    
+    <!-- 文件选择 -->
+    <div class="form-group">
+      <label>选择照片 <span class="required">*</span></label>
+      <div class="file-selector">
+        <input type="file" id="upload-files" class="file-input" accept="image/*" multiple>
+        <button type="button" class="file-btn" onclick="document.getElementById('upload-files').click()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          选择照片
+        </button>
+        <span class="file-count" id="file-count">未选择</span>
+      </div>
+    </div>
+    
+    <!-- 预览区域 -->
+    <div id="preview-area" class="preview-area hidden">
+      <div class="preview-header">
+        <span id="preview-count">0 张照片</span>
+        <button type="button" class="clear-btn" onclick="clearFiles()">清空</button>
+      </div>
+      <div class="preview-grid" id="preview-grid"></div>
+    </div>
+    
+    <!-- 提交按钮 -->
+    <button type="button" class="submit-btn" id="submit-btn" onclick="submitUpload()" disabled>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="17 8 12 3 7 8"></polyline>
+        <line x1="12" y1="3" x2="12" y2="15"></line>
+      </svg>
+      上传照片
+    </button>
+    
+    <!-- 进度条 -->
+    <div id="progress-area" class="progress-area hidden">
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+      <div class="progress-text" id="progress-text">准备上传...</div>
+    </div>
+    
+    <!-- 结果 -->
+    <div id="result-area" class="result-area hidden">
+      <div class="result-icon" id="result-icon"></div>
+      <div class="result-title" id="result-title"></div>
+      <div class="result-info" id="result-info"></div>
+      <button type="button" class="result-btn" onclick="resetUpload()">继续上传</button>
+    </div>
+    
+  </div>
+</div>
+
+<!-- 样式 -->
+<style>
+.upload-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--bg-highlight, #1a1a1a);
+  border-bottom: 1px solid var(--border, #333);
+}
+.upload-header h1 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+.back-btn {
+  color: var(--text-primary, #fff);
+  text-decoration: none;
+}
+.required { color: #ef4444; }
+.optional { color: var(--text-soft, #999); font-weight: normal; font-size: 12px; }
+</style>
+
+<script src="engine/upload.js"></script>
+</body>
+</html>

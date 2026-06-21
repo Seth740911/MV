@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>尚唯云影</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <link rel="stylesheet" href="engine/style.css?v=1.0.2">
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand-row">
+    <div class="cat-badge-nav active" data-cat="movie" onclick="switchCat('movie')">电影</div>
+    <div class="cat-badge-nav" data-cat="tv" onclick="switchCat('tv')">电视剧</div>
+    <div class="cat-badge-nav" data-cat="anime" onclick="switchCat('anime')">动画片</div>
+    <div class="cat-badge-nav" data-cat="doc" onclick="switchCat('doc')">纪录片</div>
+  </div>
+  <div class="nav-content-row">
+    <div class="nav-content-left">
+      <div id="nav-cat-badge" class="nav-cat-stamp" data-cat="movie">电影</div>
+    </div>
+    <div class="nav-content-right">
+      <div class="nav-link active" id="nav-home-link" onclick="showPage('home')">首页</div>
+      <div class="nav-link" id="nav-fav-link" onclick="showFavPage()">收藏<span id="fav-count" style="margin-left:4px;font-size:12px;color:#666">0</span></div>
+      <div class="nav-link dropdown" data-dropdown="category">
+        <span onclick="toggleDropdown(this.closest('.nav-link.dropdown'))">分类 ▾</span>
+        <div class="dropdown-content" id="category-dropdown"></div>
+      </div>
+      <div class="nav-spacer"></div>
+      <div class="nav-stats-grid">
+        <span class="stat-item" onclick="showAllItems('movie')"><span id="stat-movies">0</span>部电影</span>
+        <span class="stat-item" onclick="showAllItems('tv')"><span id="stat-tv-shows">0</span>部剧集</span>
+        <span class="stat-item" onclick="showAllItems('anime')"><span id="stat-anime">0</span>部动画</span>
+        <span class="stat-item" onclick="showAllItems('doc')"><span id="stat-doc">0</span>部纪录片</span>
+      </div>
+      <div class="nav-search">
+        <input type="text" id="search-input" placeholder="搜索片名/演员..." oninput="handleSearch()" autocomplete="off">
+        <div id="search-dropdown" class="search-dropdown"></div>
+      </div>
+      <div class="nav-update-btn" id="nav-update-btn" onclick="runUpdate()" title="更新数据">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/></svg>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- 首页 -->
+<div id="page-home" class="page active">
+  <div class="home-section" id="movie-section">
+    <div class="home-section-header">
+      <span class="header-divider"></span>
+      <span class="home-section-title" style="color:#e62429">电影</span>
+      <span class="header-divider"></span>
+    </div>
+    <div class="card-grid" id="movie-grid"></div>
+  </div>
+  <div class="home-section" id="tv-section">
+    <div class="home-section-header">
+      <span class="header-divider"></span>
+      <span class="home-section-title" style="color:#4d9fff">电视剧</span>
+      <span class="header-divider"></span>
+    </div>
+    <div class="card-grid" id="tv-grid"></div>
+  </div>
+  <div class="home-section" id="anime-section">
+    <div class="home-section-header">
+      <span class="header-divider"></span>
+      <span class="home-section-title" style="color:#ff8c00">动画片</span>
+      <span class="header-divider"></span>
+    </div>
+    <div class="card-grid" id="anime-grid"></div>
+  </div>
+  <div class="home-section" id="doc-section">
+    <div class="home-section-header">
+      <span class="header-divider"></span>
+      <span class="home-section-title" style="color:#00d4aa">纪录片</span>
+      <span class="header-divider"></span>
+    </div>
+    <div class="card-grid" id="doc-grid"></div>
+  </div>
+</div>
+
+<!-- 系列列表页 -->
+<div id="page-series" class="page">
+  <h1 id="series-page-title">系列</h1>
+  <div class="pagination-controls" id="series-pagination-top"></div>
+  <div class="card-grid" id="series-page-grid"></div>
+  <div class="pagination-controls" id="series-pagination-bottom"></div>
+</div>
+
+<!-- 全部列表页 -->
+<div id="page-all" class="page">
+  <h1 id="all-page-title">全部</h1>
+  <div class="pagination-controls" id="all-pagination-top"></div>
+  <div class="card-grid" id="all-page-grid"></div>
+  <div class="pagination-controls" id="all-pagination-bottom"></div>
+</div>
+
+<!-- 详情页 -->
+<div id="page-detail" class="page">
+  <div class="detail" id="detail-content"></div>
+</div>
+
+<!-- 搜索结果页 -->
+<div id="page-search" class="page">
+  <h1 id="search-page-title">搜索结果</h1>
+  <div class="card-grid" id="search-page-grid"></div>
+</div>
+
+<!-- 收藏页面 -->
+<div id="page-favorites" class="page">
+  <h1 id="fav-page-title">我的收藏</h1>
+  <div class="fav-filter" id="fav-filter"></div>
+  <div class="card-grid" id="fav-page-grid"></div>
+</div>
+
+<!-- 浮动播放器 -->
+<div id="floating-player" class="floating-player" style="display:none;">
+  <div class="floating-player-header">
+    <span id="floating-player-title">播放中</span>
+    <button class="floating-player-close" onclick="closeFloatingPlayer()">&times;</button>
+  </div>
+  <video id="floating-video" controls></video>
+</div>
+
+<!-- 全屏图片查看器 -->
+<div id="photo-overlay" class="photo-overlay" onclick="if(event.target===this)closePhotoViewer()">
+  <button class="photo-overlay-close" onclick="closePhotoViewer()">&times;</button>
+  <button class="photo-overlay-nav photo-overlay-prev" onclick="photoViewerPrev()">&#9664;</button>
+  <img id="photo-overlay-img" class="photo-overlay-img" onclick="event.stopPropagation()"
+    onwheel="photoViewerZoom(event.deltaY>0?-0.2:0.2)"
+    ontouchstart="_pvTouchStart(event)" ontouchmove="_pvTouchMove(event)" ontouchend="_pvTouchEnd(event)">
+  <button class="photo-overlay-nav photo-overlay-next" onclick="photoViewerNext()">&#9654;</button>
+  <div class="photo-overlay-counter" id="photo-overlay-counter"></div>
+</div>
+
+<!-- 数据文件由 DataLoader 按需加载，不在这里静态引用 -->
+
+<!-- Android 4.4 兼容性 Polyfills（必须在引擎脚本之前加载） -->
+<script>
+// Element.closest polyfill（Android 4.4 WebView 不支持）
+if (!Element.prototype.closest) {
+  Element.prototype.closest = function(s) {
+    var el = this;
+    if (!document.documentElement.contains(el)) return null;
+    do {
+      if (el.matches(s)) return el;
+      el = el.parentElement || el.parentNode;
+    } while (el !== null && el.nodeType === 1);
+    return null;
+  };
+}
+
+// Element.matches polyfill（closest 依赖）
+if (!Element.prototype.matches) {
+  Element.prototype.matches = Element.prototype.msMatchesSelector ||
+    Element.prototype.webkitMatchesSelector ||
+    function(s) {
+      var matches = (this.document || this.ownerDocument).querySelectorAll(s);
+      var i = matches.length;
+      while (--i >= 0 && matches.item(i) !== this) {}
+      return i > -1;
+    };
+}
+
+// Object.keys polyfill（Android 4.4 基本支持，保险起见）
+if (!Object.keys) {
+  Object.keys = (function() {
+    var hasOwnProperty = Object.prototype.hasOwnProperty;
+    var hasDontEnumBug = !({ toString: null }).propertyIsEnumerable('toString');
+    var dontEnums = ['toString', 'toLocaleString', 'valueOf', 'hasOwnProperty', 'isPrototypeOf', 'propertyIsEnumerable', 'constructor'];
+    var dontEnumsLength = dontEnums.length;
+    return function(obj) {
+      if (typeof obj !== 'object' && typeof obj !== 'function' || obj === null) throw new TypeError('Object.keys called on non-object');
+      var result = [];
+      for (var prop in obj) {
+        if (hasOwnProperty.call(obj, prop)) result.push(prop);
+      }
+      if (hasDontEnumBug) {
+        for (var i = 0; i < dontEnumsLength; i++) {
+          if (hasOwnProperty.call(obj, dontEnums[i])) result.push(dontEnums[i]);
+        }
+      }
+      return result;
+    };
+  })();
+}
+</script>
+
+<!-- 引擎模块 -->
+<script src="engine/dataloader.js?v=1.0.2"></script>
+<script src="engine/core.js?v=1.0.2"></script>
+<script src="engine/watch.js?v=1.0.2"></script>
+<script src="engine/render.js?v=1.0.2"></script>
+<script src="engine/detail.js?v=1.0.2"></script>
+
+<!-- 异步初始化（回调模式，兼容 Android 4.4）：逐分类加载并渲染 -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('[SETH] Initializing with lazy loading...');
+
+  // 1. 加载 stats
+  DataLoader.loadScript('data/stats.js', function(err) {
+    if (err) { console.error('[SETH] Failed to load stats:', err); return; }
+
+    // 2. 加载首屏分类（movie）的 index + data
+    DataLoader.load('movie', function(err2) {
+      if (err2) { console.error('[SETH] Failed to load movie data:', err2); return; }
+
+      // 3. 初始化核心模块并渲染首页
+      initApp();
+
+      // 4. 逐个预加载其余分类，加载完一个就立即渲染该分类
+      var remainingCats = ['tv', 'anime', 'doc'];
+      var idx = 0;
+
+      function loadNext() {
+        if (idx >= remainingCats.length) {
+          initNav();
+          console.log('[SETH] All categories preloaded');
+          return;
+        }
+        var cat = remainingCats[idx];
+        idx++;
+        DataLoader.load(cat, function(err3) {
+          if (!err3 && typeof renderHomePage === 'function') {
+            renderHomePage();
+          }
+          loadNext();
+        });
+      }
+      loadNext();
+    });
+  });
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>尚唯云册</title>
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <link rel="stylesheet" href="engine/style-new.css?v=4.0.0">
+  <script>
+  (function(){
+    var retryCount = 0, maxRetry = 3, delay = 3000;
+    var initDone = false;
+    window.__sethInitDone = function() { initDone = true; };
+    function checkAndReload(){
+      if(initDone) return;
+      if(typeof DataLoader !== 'undefined') return;
+      retryCount++;
+      if(retryCount > maxRetry) return;
+      setTimeout(function(){ location.reload(); }, delay);
+    }
+    window.addEventListener('error', function(e){
+      if(e.target && e.target.tagName && (e.target.tagName==='LINK'||e.target.tagName==='SCRIPT')){
+        e.preventDefault(); checkAndReload();
+      }
+    }, true);
+  })();
+  </script>
+</head>
+<body>
+
+<!-- ====== 双导航栏（效仿尚唯云色） ====== -->
+<nav>
+  <div class="nav-row2">
+    <!-- 第1栏：功能徽章（彩色戳） -->
+    <div class="nav-brand-row">
+      <div class="brand-badge active" data-cat="photo" onclick="switchFirstNav('photo')">照片</div>
+      <div class="brand-badge" data-cat="life" onclick="switchFirstNav('life')">生活</div>
+      <div class="brand-badge" data-cat="memory" onclick="switchFirstNav('memory')">回忆</div>
+      <div class="brand-badge" data-cat="people" onclick="switchFirstNav('people')">人物</div>
+      <div class="brand-badge" data-cat="place" onclick="switchFirstNav('place')">地点</div>
+      <div class="brand-badge" data-cat="doc" onclick="switchFirstNav('doc')">文档</div>
+      <div class="brand-badge" data-cat="tool" onclick="switchFirstNav('tool')">工具</div>
+    </div>
+    <!-- 第2栏：细分导航（下拉菜单） -->
+    <div class="nav-content-row">
+      <div class="nav-content-left">
+        <div id="nav-badge" class="project-tag" data-cat="photo">PHOTO</div>
+      </div>
+      <div class="nav-content-right" id="nav-sub-links">
+        <!-- 由JS动态生成 -->
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ====== 首页 ====== -->
+<div id="page-home" class="page active">
+  <!-- 统计横幅 -->
+  <div class="home-stats-bar" id="home-stats-bar">
+    <span class="stat-item" onclick="switchFirstNav('photo')"><span id="stat-photos">0</span>照片</span>
+    <span class="stat-item" onclick="switchFirstNav('life')"><span id="stat-life">0</span>生活</span>
+    <span class="stat-item" onclick="switchFirstNav('people')"><span id="stat-people">0</span>人物</span>
+    <span class="stat-item" onclick="switchFirstNav('place')"><span id="stat-places">0</span>地点</span>
+  </div>
+  <!-- 最近上传 -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">最近更新</span>
+    </div>
+    <div class="card-grid" id="home-recent-grid"></div>
+  </div>
+  <!-- 标签云 -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">热门标签</span>
+    </div>
+    <div class="tag-cloud" id="home-tag-cloud"></div>
+  </div>
+</div>
+
+<!-- ====== 相册列表页 ====== -->
+<div id="page-albums" class="page">
+  <div class="page-header">
+    <h1 id="albums-title">全部相册</h1>
+    <span class="albums-count" id="albums-count"></span>
+  </div>
+  <div class="filter-bar" id="albums-filter"></div>
+  <div class="card-grid" id="albums-grid"></div>
+  <div class="pagination" id="albums-pagination"></div>
+</div>
+
+<!-- ====== 相册详情页 ====== -->
+<div id="page-album-detail" class="page">
+  <div class="page-header">
+    <span class="back-link" onclick="goBack()">&larr; 返回</span>
+    <h1 id="detail-title"></h1>
+    <span class="detail-meta" id="detail-meta"></span>
+  </div>
+  <div class="tag-bar" id="detail-tags"></div>
+  <div class="photo-grid" id="detail-grid"></div>
+</div>
+
+<!-- ====== 照片查看器 ====== -->
+<div id="viewer-overlay" class="viewer-overlay" style="display:none;">
+  <div class="viewer-toolbar">
+    <div class="viewer-counter" id="viewer-counter">1/1</div>
+    <div class="viewer-actions">
+      <button class="viewer-btn" onclick="viewerZoom(-0.3)">-</button>
+      <button class="viewer-btn" onclick="viewerZoom(0.3)">+</button>
+      <button class="viewer-btn" onclick="viewerRotate()">R</button>
+      <button class="viewer-btn" onclick="closeViewer()">X</button>
+    </div>
+  </div>
+  <div class="viewer-body">
+    <button class="viewer-nav prev" onclick="event.stopPropagation();viewerPrev()">&larr;</button>
+    <img id="viewer-img" src="" alt="">
+    <button class="viewer-nav next" onclick="event.stopPropagation();viewerNext()">&rarr;</button>
+  </div>
+  <div class="viewer-info-bar">
+    <span id="viewer-filename"></span>
+    <span id="viewer-dims"></span>
+    <span id="viewer-date"></span>
+  </div>
+</div>
+
+<!-- ====== 回忆全屏 ====== -->
+<div id="memory-overlay" class="memory-overlay" style="display:none;">
+  <div class="memory-bg" id="memory-bg"></div>
+  <div class="memory-content">
+    <div class="memory-title" id="memory-title"></div>
+    <div class="memory-photo-wrap"><img id="memory-img" src="" alt=""></div>
+    <div class="memory-info">
+      <span class="memory-date" id="memory-date"></span>
+      <span class="memory-place" id="memory-place"></span>
+      <span class="memory-tags" id="memory-tags"></span>
+    </div>
+    <div class="memory-progress"><div class="memory-progress-bar" id="memory-bar"></div></div>
+  </div>
+  <button class="memory-nav prev" onclick="memPrev()">&#10094;</button>
+  <button class="memory-nav next" onclick="memNext()">&#10095;</button>
+  <button class="memory-close" onclick="closeMemory()">&#10005;</button>
+</div>
+
+<!-- Polyfills -->
+<script>
+if (!Element.prototype.closest) {
+  Element.prototype.closest = function(s) {
+    var el = this;
+    if (!document.documentElement.contains(el)) return null;
+    do { if (el.matches(s)) return el; el = el.parentElement || el.parentNode; } while (el !== null && el.nodeType === 1);
+    return null;
+  };
+}
+if (!Element.prototype.matches) { Element.prototype.matches = Element.prototype.msMatchesSelector || Element.prototype.webkitMatchesSelector; }
+</script>
+
+<!-- 引擎 -->
+<script src="data/stats.js"></script>
+<script src="data/album-tags.js"></script>
+<script src="config.js"></script>
+<script src="engine/dataloader.js?v=4.0.0"></script>
+<script src="engine/tab-controller.js?v=4.0.0"></script>
+<script src="engine/render-new.js?v=4.0.0"></script>
+
+<script>
+// 全局快捷函数
+function goBack() { showPage('home'); }
+function showPage(pageId) {
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+  var el = document.getElementById('page-' + pageId);
+  if (el) el.classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  var si = document.getElementById('search-input');
+  if (si) {
+    si.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') { e.target.value = ''; e.target.blur(); }
+    });
+  }
+});
+</script>
+
+</body>
+</html>

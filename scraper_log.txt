@@ -1,0 +1,6 @@
+G:\AI\MV\tmdb_scraper.py:6: SyntaxWarning: invalid escape sequence '\.'
+  图片保存到 I:\电影\.scraped\ 对应目录
+Traceback (most recent call last):
+  File "G:\AI\MV\tmdb_scraper.py", line 17, in <module>
+    import requests
+ModuleNotFoundError: No module named 'requests'

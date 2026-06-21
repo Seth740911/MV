@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>尚唯云影 - 播放器</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#000; color:#fff; font-family:sans-serif; overflow:hidden; height:100vh; }
+
+/* 视频区域 */
+#video-area {
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  display:flex; align-items:center; justify-content:center;
+  background:#000;
+}
+video {
+  width:100%; height:100%; object-fit:contain;
+}
+
+/* 顶部控制栏 */
+#top-bar {
+  position:fixed; top:0; left:0; width:100%; height:56px;
+  background:linear-gradient(to bottom, rgba(0,0,0,0.85), transparent);
+  display:flex; align-items:center; justify-content:flex-end; padding:0 24px;
+  gap:12px; z-index:100; opacity:0;
+  transition:opacity 0.3s;
+}
+#top-bar.show { opacity:1; }
+
+.ctrl-btn {
+  color:#fff; font-size:18px; background:rgba(255,255,255,0.15);
+  border:2px solid rgba(255,255,255,0.3); border-radius:8px;
+  padding:8px 16px; cursor:pointer; outline:none;
+  min-width:44px; text-align:center;
+}
+.ctrl-btn:focus, .ctrl-btn.tv-focus {
+  background:#e62429; border-color:#e62429;
+}
+
+/* 速度面板 */
+#speed-panel {
+  position:fixed; bottom:80px; left:50%; transform:translateX(-50%);
+  background:rgba(0,0,0,0.9); border-radius:12px;
+  padding:16px 24px; display:flex; gap:12px;
+  z-index:200; opacity:0; pointer-events:none;
+  transition:opacity 0.3s;
+}
+#speed-panel.show { opacity:1; pointer-events:auto; }
+.spd-opt {
+  color:#fff; font-size:20px; padding:8px 16px; border-radius:8px;
+  background:transparent; border:2px solid transparent; cursor:pointer; outline:none;
+}
+.spd-opt.active { background:#e62429; border-color:#e62429; font-weight:bold; }
+.spd-opt:focus, .spd-opt.tv-focus {
+  border-color:#fff;
+}
+
+/* 速度提示（屏幕中央） */
+#speed-tip {
+  position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+  background:rgba(0,0,0,0.85); color:#fff; font-size:42px;
+  padding:20px 40px; border-radius:14px; z-index:300;
+  opacity:0; pointer-events:none; transition:opacity 0.3s;
+}
+
+/* 加载提示 */
+#loading {
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:24px; color:#aaa;
+}
+</style>
+</head>
+<body>
+
+<div id="loading">正在加载播放器...</div>
+
+<div id="video-area">
+  <video id="video" controls preload="auto"></video>
+</div>
+
+<!-- 顶部控制栏 -->
+<div id="top-bar">
+  <button class="ctrl-btn" id="btn-speed" data-action="speed">速度 1.0x</button>
+  <button class="ctrl-btn" data-action="close">✕ 返回</button>
+</div>
+
+<!-- 速度面板 -->
+<div id="speed-panel">
+  <button class="spd-opt" data-spd="0.5">0.5x</button>
+  <button class="spd-opt" data-spd="0.75">0.75x</button>
+  <button class="spd-opt active" data-spd="1.0">1.0x</button>
+  <button class="spd-opt" data-spd="1.25">1.25x</button>
+  <button class="spd-opt" data-spd="1.5">1.5x</button>
+  <button class="spd-opt" data-spd="2.0">2.0x</button>
+</div>
+
+<!-- 速度提示 -->
+<div id="speed-tip"></div>
+
+<script>
+// ======== 初始化 =======
+var video = document.getElementById('video');
+var topBar = document.getElementById('top-bar');
+var speedPanel = document.getElementById('speed-panel');
+var speedBtn = document.getElementById('btn-speed');
+var speedTip = document.getElementById('speed-tip');
+var loading = document.getElementById('loading');
+
+var speeds = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
+var speedIdx = 2;
+var panelVisible = false;
+
+// 从 URL 参数获取视频地址
+function getParam(name) {
+  var match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+  return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+}
+var videoUrl = getParam('url');
+if (!videoUrl) {
+  loading.textContent = '错误：没有视频地址，请加上 ?url=视频地址';
+} else {
+  loading.style.display = 'none';
+  video.src = videoUrl;
+  video.load();
+  // 视频加载失败时显示错误信息（防止白屏）
+  video.addEventListener('error', function() {
+    var errDiv = document.getElementById('video-error');
+    if (!errDiv) {
+      errDiv = document.createElement('div');
+      errDiv.id = 'video-error';
+      errDiv.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:20px;text-align:center;padding:20px;background:rgba(0,0,0,0.8);border-radius:12px;z-index:999;';
+      document.body.appendChild(errDiv);
+    }
+    var msg = '视频加载失败';
+    var code = video.error ? video.error.code : 0;
+    if (code === 1) msg += '\n(MEDIA_ERR_ABORTED)';
+    else if (code === 2) msg += '\n(MEDIA_ERR_NETWORK)';
+    else if (code === 3) msg += '\n(MEDIA_ERR_DECODE)';
+    else if (code === 4) msg += '\n(MEDIA_ERR_SRC_NOT_SUPPORTED 格式不支持)';
+    msg += '\n' + videoUrl;
+    errDiv.textContent = msg;
+  });
+}
+
+// ======== 控制栏自动隐藏 =======
+var barTimer = null;
+function showBar() {
+  topBar.classList.add('show');
+  clearTimeout(barTimer);
+  barTimer = setTimeout(function() { topBar.classList.remove('show'); }, 5000);
+}
+video.addEventListener('click', showBar);
+document.addEventListener('mousemove', showBar);
+
+// ======== 速度面板 =======
+function showSpeedPanel() {
+  panelVisible = true;
+  speedPanel.classList.add('show');
+  updateSpeedPanel();
+  clearTimeout(speedPanel._t);
+  speedPanel._t = setTimeout(hideSpeedPanel, 8000);
+}
+function hideSpeedPanel() {
+  panelVisible = false;
+  speedPanel.classList.remove('show');
+}
+function updateSpeedPanel() {
+  var opts = speedPanel.querySelectorAll('.spd-opt');
+  for (var i = 0; i < opts.length; i++) {
+    var isActive = parseFloat(opts[i].getAttribute('data-spd')) === speeds[speedIdx];
+    if (isActive) opts[i].classList.add('active');
+    else opts[i].classList.remove('active');
+  }
+}
+function setSpeed(idx) {
+  speedIdx = idx;
+  video.playbackRate = speeds[idx];
+  speedBtn.textContent = '速度 ' + speeds[idx] + 'x';
+  // 中央提示
+  speedTip.textContent = speeds[idx] + 'x';
+  speedTip.style.opacity = '1';
+  clearTimeout(speedTip._t);
+  speedTip._t = setTimeout(function() { speedTip.style.opacity = '0'; }, 1500);
+  updateSpeedPanel();
+}
+// 速度面板按钮点击
+var spdBtns = speedPanel.querySelectorAll('.spd-opt');
+for (var i = 0; i < spdBtns.length; i++) {
+  (function(btn) {
+    btn.addEventListener('click', function() {
+      setSpeed(speeds.indexOf(parseFloat(btn.getAttribute('data-spd'))));
+      hideSpeedPanel();
+    });
+  })(spdBtns[i]);
+}
+
+// 速度按钮点击
+speedBtn.addEventListener('click', function() {
+  if (panelVisible) hideSpeedPanel();
+  else showSpeedPanel();
+});
+
+// 返回按钮
+document.querySelector('[data-action="close"]').addEventListener('click', function() {
+  history.back();
+});
+
+// ======== 键盘/遥控器事件 =======
+document.addEventListener('keydown', function(e) {
+  var k = e.keyCode;
+  // 菜单键（82）或 S 键：切换速度面板
+  if (k === 82 || k === 229 || e.key === 'ContextMenu' || (e.key && e.key.toLowerCase() === 's')) {
+    e.preventDefault();
+    if (panelVisible) hideSpeedPanel(); else showSpeedPanel();
+    return;
+  }
+  // 上键：减速
+  if ((k === 38 || k === 19) && panelVisible) {
+    e.preventDefault();
+    if (speedIdx > 0) setSpeed(speedIdx - 1);
+    return;
+  }
+  // 下键：加速
+  if ((k === 40 || k === 20) && panelVisible) {
+    e.preventDefault();
+    if (speedIdx < speeds.length - 1) setSpeed(speedIdx + 1);
+    return;
+  }
+  // 左键：减速
+  if ((k === 37 || k === 21) && panelVisible) {
+    e.preventDefault();
+    if (speedIdx > 0) setSpeed(speedIdx - 1);
+    return;
+  }
+  // 右键：加速
+  if ((k === 39 || k === 22) && panelVisible) {
+    e.preventDefault();
+    if (speedIdx < speeds.length - 1) setSpeed(speedIdx + 1);
+    return;
+  }
+  // Enter/确认键：播放/暂停
+  if (k === 13 || k === 32 || k === 23) {
+    e.preventDefault();
+    if (video.paused) { try { video.play(); } catch(ex) { video.muted = true; video.play(); } }
+    else video.pause();
+    return;
+  }
+  // 返回键
+  if (k === 4 || k === 27) {
+    history.back();
+    return;
+  }
+});
+
+// 显示控制栏（3秒后自动隐藏）
+showBar();
+</script>
+</body>
+</html>

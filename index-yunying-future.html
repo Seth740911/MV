@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>尚唯云影 2.0</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <link rel="stylesheet" href="engine/style-new.css?v=2.0.0">
+</head>
+<body>
+
+<!-- 顶部导航栏 -->
+<header class="app-header">
+  <div class="app-logo">
+    <div class="app-logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+        <line x1="7" y1="2" x2="7" y2="22"></line>
+        <line x1="17" y1="2" x2="17" y2="22"></line>
+      </svg>
+    </div>
+    <span>尚唯云影</span>
+  </div>
+  
+  <div class="app-search">
+    <input type="text" id="search-input" placeholder="搜索电影、电视剧、演员..." autocomplete="off">
+    <span class="app-search-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+    </span>
+  </div>
+  
+  <div class="app-actions">
+    <button class="app-action-btn" title="刷新数据" onclick="refreshData()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/>
+      </svg>
+    </button>
+    <button class="app-action-btn" title="设置">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- 多标签页系统 -->
+<div class="tab-system">
+  <!-- Tab栏 -->
+  <div class="tab-bar" id="main-tab-bar" role="tablist">
+    <!-- 由 tab-controller.js 动态生成 -->
+  </div>
+  
+  <!-- Tab内容区域 -->
+  <div class="tab-content">
+    
+    <!-- 首页 Tab -->
+    <div class="tab-pane active" id="pane-home" role="tabpanel">
+      
+      <!-- 精选推荐 -->
+      <section class="content-section">
+        <div class="section-header">
+          <h2 class="section-title">
+            <svg class="section-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+            精选推荐
+          </h2>
+          <span class="section-more">
+            查看更多
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </span>
+        </div>
+        <div class="card-scroll-container">
+          <div class="card-scroll" id="featured-scroll"></div>
+        </div>
+      </section>
+      
+      <!-- 最新电影 -->
+      <section class="content-section">
+        <div class="section-header">
+          <h2 class="section-title">
+            <svg class="section-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+              <line x1="7" y1="2" x2="7" y2="22"></line>
+              <line x1="17" y1="2" x2="17" y2="22"></line>
+            </svg>
+            最新电影
+          </h2>
+          <span class="section-more" onclick="switchTab('movie')">
+            全部
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </span>
+        </div>
+        <div class="card-grid" id="home-movie-grid"></div>
+      </section>
+      
+      <!-- 热门剧集 -->
+      <section class="content-section">
+        <div class="section-header">
+          <h2 class="section-title">
+            <svg class="section-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect>
+              <polyline points="17 2 12 7 7 2"></polyline>
+            </svg>
+            热门剧集
+          </h2>
+          <span class="section-more" onclick="switchTab('tv')">
+            全部
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </span>
+        </div>
+        <div class="card-grid" id="home-tv-grid"></div>
+      </section>
+      
+    </div>
+    
+    <!-- 电影 Tab -->
+    <div class="tab-pane" id="pane-movie" role="tabpanel">
+      <div class="tab-title">
+        <h1>电影</h1>
+        <span class="tab-badge" id="movie-count">0</span>
+      </div>
+      <div class="card-grid" id="movie-grid"></div>
+    </div>
+    
+    <!-- 电视剧 Tab -->
+    <div class="tab-pane" id="pane-tv" role="tabpanel">
+      <div class="tab-title">
+        <h1>电视剧</h1>
+        <span class="tab-badge" id="tv-count">0</span>
+      </div>
+      <div class="card-grid" id="tv-grid"></div>
+    </div>
+    
+    <!-- 动画片 Tab -->
+    <div class="tab-pane" id="pane-anime" role="tabpanel">
+      <div class="tab-title">
+        <h1>动画片</h1>
+        <span class="tab-badge" id="anime-count">0</span>
+      </div>
+      <div class="card-grid" id="anime-grid"></div>
+    </div>
+    
+    <!-- 纪录片 Tab -->
+    <div class="tab-pane" id="pane-doc" role="tabpanel">
+      <div class="tab-title">
+        <h1>纪录片</h1>
+        <span class="tab-badge" id="doc-count">0</span>
+      </div>
+      <div class="card-grid" id="doc-grid"></div>
+    </div>
+    
+    <!-- 收藏 Tab -->
+    <div class="tab-pane" id="pane-fav" role="tabpanel">
+      <div class="tab-title">
+        <h1>我的收藏</h1>
+        <span class="tab-badge" id="fav-count">0</span>
+      </div>
+      <div class="card-grid" id="fav-grid">
+        <div class="empty-state">
+          <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+          </svg>
+          <h3 class="empty-state-title">暂无收藏</h3>
+          <p class="empty-state-desc">浏览影视内容，点击收藏按钮添加到这里</p>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+</div>
+
+<!-- 移动端底部导航 -->
+<div class="mobile-bottom-nav">
+  <div class="mobile-nav-item active" data-tab="home">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+      <polyline points="9 22 9 12 15 12 15 22"></polyline>
+    </svg>
+    <span>首页</span>
+  </div>
+  <div class="mobile-nav-item" data-tab="movie">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+      <line x1="7" y1="2" x2="7" y2="22"></line>
+      <line x1="17" y1="2" x2="17" y2="22"></line>
+    </svg>
+    <span>电影</span>
+  </div>
+  <div class="mobile-nav-item" data-tab="tv">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect>
+      <polyline points="17 2 12 7 7 2"></polyline>
+    </svg>
+    <span>剧集</span>
+  </div>
+  <div class="mobile-nav-item" data-tab="fav">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+    </svg>
+    <span>收藏</span>
+  </div>
+</div>
+
+<!-- 详情页（模态） -->
+<div id="detail-modal" class="detail-modal" style="display:none;"></div>
+
+<!-- Android 4.4 Polyfills -->
+<script>
+if (!Element.prototype.closest) {
+  Element.prototype.closest = function(s) {
+    var el = this;
+    if (!document.documentElement.contains(el)) return null;
+    do {
+      if (el.matches(s)) return el;
+      el = el.parentElement || el.parentNode;
+    } while (el !== null && el.nodeType === 1);
+    return null;
+  };
+}
+if (!Element.prototype.matches) {
+  Element.prototype.matches = Element.prototype.msMatchesSelector ||
+    Element.prototype.webkitMatchesSelector;
+}
+if (!Object.keys) {
+  Object.keys = function(obj) {
+    var result = [];
+    for (var key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) result.push(key);
+    }
+    return result;
+  };
+}
+</script>
+
+<!-- 引擎模块 -->
+<script src="engine/dataloader.js?v=2.0.0"></script>
+<script src="engine/tab-controller.js?v=2.0.0"></script>
+<script src="engine/core.js?v=2.0.0"></script>
+<script src="engine/render.js?v=2.0.0"></script>
+
+<!-- 初始化脚本 -->
+<script>
+// 切换Tab（全局函数）
+function switchTab(tabId) {
+  if (window.TabSystem) {
+    window.TabSystem.activate(tabId);
+  }
+}
+
+// 刷新数据
+function refreshData() {
+  console.log('[App] 刷新数据...');
+  // 重新加载当前Tab数据
+  var currentTab = window.TabSystem ? window.TabSystem.getActive() : 'home';
+  if (typeof DataLoader !== 'undefined' && DataLoader.clearCache) {
+    DataLoader.clearCache();
+  }
+  location.reload();
+}
+
+// 移动端底部导航事件
+document.addEventListener('DOMContentLoaded', function() {
+  var mobileNav = document.querySelector('.mobile-bottom-nav');
+  if (mobileNav) {
+    mobileNav.addEventListener('click', function(e) {
+      var item = e.target.closest('.mobile-nav-item');
+      if (item) {
+        var tabId = item.getAttribute('data-tab');
+        switchTab(tabId);
+        
+        // 更新激活状态
+        mobileNav.querySelectorAll('.mobile-nav-item').forEach(function(el) {
+          el.classList.remove('active');
+        });
+        item.classList.add('active');
+      }
+    });
+  }
+  
+  // 搜索功能
+  var searchInput = document.getElementById('search-input');
+  if (searchInput) {
+    searchInput.addEventListener('input', function(e) {
+      var query = e.target.value.trim();
+      console.log('[Search] 查询:', query);
+      // TODO: 实现搜索逻辑
+    });
+  }
+});
+</script>
+
+</body>
+</html>
